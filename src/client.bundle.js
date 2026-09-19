@@ -159,7 +159,12 @@ window.__ModuleLoader__.load({
 .rgi-preActions{display:flex;align-items:stretch;flex:none;border-left:1px solid var(--dsw-alias-border-l1)}
 .rgi-preBtn{appearance:none;background:0 0;border:none;border-left:1px solid var(--dsw-alias-border-l1);padding:9px 14px;font:inherit;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary);cursor:pointer}
 .rgi-preBtn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
-.rgi-preBtn:disabled{opacity:.45;cursor:default}`;
+.rgi-preBtn:disabled{opacity:.45;cursor:default}
+/* Hosted main-panel mode (sidebar.panellist + main slots). */
+.rgi-main{height:100%;overflow:auto;box-sizing:border-box;background:var(--dsw-specific-sidebar-fill);padding:24px;display:flex;justify-content:center;align-items:flex-start}
+.rgi-main .rgi-scrim{position:static;z-index:auto;background:0 0;padding:0;display:flex;flex-direction:column;width:100%;max-width:860px;height:100%}
+.rgi-main .rgi-card{flex:1;min-height:0;max-height:none;box-shadow:none}
+.rgi-main .rgi-close{display:none}`;
 		const tagId = "dsh-generative-ideas/panel.css";
 		if (typeof document !== "undefined" && document.querySelector(`style[data-plugin-css="${tagId}"]`) === null) {
 			const tag = document.createElement("style");
@@ -169,76 +174,26 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		//#endregion
-		//#region lib/sidebar.js
-		const ENTRY_ATTR = "data-dsh-generative-ideas-entry";
-		const FAMILY = ["[data-dsh-taskboard-entry]", "[data-dsh-ssh-entry]", "[data-dsh-skill-explorer-entry]", "[data-dsh-rich-context-entry]", `[${ENTRY_ATTR}]`];
-		const ICON = "<svg viewBox=\"0 0 16 16\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 1.5a3 3 0 0 1 3 3c0 .8-.3 1.5-.8 2-.5.6-.7 1.2-.7 2v.5h-3v-.5c0-.8-.2-1.4-.7-2-.5-.5-.8-1.2-.8-2a3 3 0 0 1 3-3z\"/><path d=\"M6.5 11.5h3M7 13.5h2\"/></svg>";
-
-		function sidebarRoot() {
-			const column = document.querySelector("[data-pane=\"sidebar\"], [class*=\"sidebarCol\"]");
-			if (column === null) return undefined;
-			return column.querySelector("[class*=\"logoRow\"]")?.parentElement ?? column.firstElementChild ?? undefined;
-		}
-		function newSessionButton(root) {
-			const nested = root.querySelector("button[class*=\"newSession\"]");
-			if (nested !== null) return nested;
-			for (const child of root.children) if (child.tagName === "BUTTON") return child;
-			return undefined;
-		}
-		function mountSidebarEntry(onToggle, isActive, subscribe) {
-			if (document.querySelector(`[${ENTRY_ATTR}]`) !== null) return () => {};
-			const entry = document.createElement("button");
-			entry.type = "button";
-			entry.setAttribute(ENTRY_ATTR, "");
-			entry.setAttribute("data-dsh-plugin", "generative-ideas");
-			entry.setAttribute("data-dsh-part", "sidebar-entry");
-			entry.className = "rgi-entry";
-			entry.setAttribute("aria-label", t("entry.tooltip"));
-			entry.setAttribute("title", t("entry.tooltip"));
-			entry.innerHTML = `<span class="rgi-entryIcon">${ICON}</span><span class="rgi-entryLabel">${t("entry.label")}</span>`;
-			entry.addEventListener("click", onToggle);
-			let root;
-			let placed = false;
-			const place = () => {
-				const button = root === undefined ? undefined : newSessionButton(root);
-				if (button === undefined) return false;
-				if (entry.parentElement !== root) {
-					const row = button.closest("[class*=\"logoRow\"]");
-					const base = row !== null && row.parentElement === root ? row : button;
-					const family = Array.from(root.children).filter((el) => el instanceof HTMLElement && el.matches(FAMILY.join(", ")));
-					const anchor = family.length > 0 ? family[family.length - 1].nextElementSibling : base.nextElementSibling;
-					root.insertBefore(entry, anchor);
-				}
-				return true;
-			};
-			const tryPlace = () => {
-				if (root !== undefined && !root.isConnected) { rootObserver.disconnect(); root = undefined; placed = false; }
-				if (placed && document.body.contains(entry)) return;
-				if (placed && !document.body.contains(entry)) { rootObserver.disconnect(); root = undefined; placed = false; }
-				root ??= sidebarRoot();
-				if (root === undefined) return;
-				placed = place();
-				if (placed) rootObserver.observe(root, { childList: true, subtree: true });
-			};
-			const waitObserver = new MutationObserver(tryPlace);
-			waitObserver.observe(document.body, { childList: true, subtree: true });
-			const rootObserver = new MutationObserver(() => {
-				if (root === undefined || !root.isConnected) { placed = false; tryPlace(); return; }
-				if (!root.contains(entry)) placed = place();
+		//#region lib/panel-slot.js
+		// Sanctioned surface (0.1.6+): sidebar.panellist row + keyed main panel,
+		// mirroring the built-in Plugins entry. The shell owns the row chrome;
+		// no DOM grafting into React-managed sidebar rows.
+		const PANEL_ID = "generative-ideas";
+		const ICON_PATHS = '<path d="M8 1.5a3 3 0 0 1 3 3c0 .8-.3 1.5-.8 2-.5.6-.7 1.2-.7 2v.5h-3v-.5c0-.8-.2-1.4-.7-2-.5-.5-.8-1.2-.8-2a3 3 0 0 1 3-3z"/><path d="M6.5 11.5h3M7 13.5h2"/>';
+		function PanelIcon({ size }) {
+			return (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16", width: size ?? 18, height: size ?? 18,
+				fill: "none", stroke: "currentColor", strokeWidth: 1.3,
+				strokeLinecap: "round", strokeLinejoin: "round",
+				"aria-hidden": true,
+				dangerouslySetInnerHTML: { __html: ICON_PATHS },
 			});
-			let unsubscribe;
-			if (subscribe !== undefined) {
-				const sync = () => { if (isActive()) entry.dataset.active = "true"; else delete entry.dataset.active; };
-				unsubscribe = subscribe(sync);
-				sync();
-			}
-			tryPlace();
-			return () => {
-				waitObserver.disconnect();
-				rootObserver.disconnect();
-				unsubscribe?.();
-				entry.remove();
-			};
+		}
+		function MainPanel() {
+			return (0, react_jsx_runtime.jsx)("div", {
+				className: "rgi-main",
+				children: (0, react_jsx_runtime.jsx)(IdeasPanel, { onClose: () => {}, onGeneratingChange: () => {} })
+			});
 		}
 		//#endregion
 		//#region lib/api.js
@@ -580,67 +535,27 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region lib/index.js
-		const inject = ["locale"];
+		const inject = ["locale", "slots"];
 		function apply(ctx) {
 			ctx.effect(() => ctx.locale.register(NS, { en, zh }), "rich-ideas: dictionaries");
 
-			let open = false;
-			let generating = false;
-			let listeners = new Set();
-			const setGenerating = (value) => {
-				if (generating === value) return;
-				generating = value;
-				const entry = document.querySelector(`[${ENTRY_ATTR}]`);
-				if (entry !== null) {
-					if (value) entry.setAttribute("data-generating", "true");
-					else entry.removeAttribute("data-generating");
-				}
-			};
-			const isOpen = () => open;
-			const subscribe = (listener) => { listeners.add(listener); return () => listeners.delete(listener); };
-			const setOpen = (value) => {
-				if (open === value) return;
-				open = value;
-				for (const listener of [...listeners]) listener();
-			};
+			// Sidebar + panel ride the sanctioned slots (see lib/panel-slot.js):
+			// the shell owns the row chrome and panel selection; the generating
+			// pulse lives inside the panel itself in hosted mode.
+			ctx.slots.inject("main", () => ctx.slots.register({
+				name: "main",
+				key: PANEL_ID,
+				locale: NS,
+			}, MainPanel));
+			ctx.slots.inject("sidebar.panellist", () => ctx.slots.register({
+				name: "sidebar.panellist",
+				id: PANEL_ID,
+				order: 30,
+				label: () => t("entry.label"),
+				locale: NS,
+			}, PanelIcon));
 
-			let container;
-			let root;
-			const mountPanel = () => {
-				container = document.createElement("div");
-				container.dataset.dshPlugin = "generative-ideas";
-				container.dataset.dshPart = "panel-root";
-				document.body.appendChild(container);
-				root = react_dom_client.createRoot(container);
-				root.render((0, react_jsx_runtime.jsx)(IdeasPanel, { onClose: () => teardownPanel(), onGeneratingChange: setGenerating }));
-			};
-			const teardownPanel = () => {
-				setOpen(false);
-				root?.unmount();
-				root = undefined;
-				container?.remove();
-				container = undefined;
-			};
-
-			const SIDEBAR_ROW_SELECTOR = "[class*=\"sessionRow\"], [class*=\"projectRow\"], [class*=\"searchResultRow\"], [class*=\"searchResultWorkspace\"], [class*=\"newSession\"]";
-			const onSidebarClick = (event) => {
-				if (!open) return;
-				const target = event.target;
-				if (target !== null && target.closest?.(SIDEBAR_ROW_SELECTOR) !== null) teardownPanel();
-			};
-			document.addEventListener("click", onSidebarClick, true);
-
-			const disposeEntry = mountSidebarEntry(
-				() => { if (open) teardownPanel(); else { setOpen(true); mountPanel(); } },
-				isOpen,
-				subscribe
-			);
-
-			return () => {
-				document.removeEventListener("click", onSidebarClick, true);
-				teardownPanel();
-				disposeEntry();
-			};
+			return () => {};
 		}
 		exports.apply = apply;
 		exports.inject = inject;
