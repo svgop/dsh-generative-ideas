@@ -25,7 +25,7 @@ const SESSIONS_DIR = join(DSH_HOME, 'sessions')
 const DSH_BIN = '/opt/cli-dsh-web/node_modules/.bin/dsh'
 
 export const name = 'dsh-generative-ideas'
-export const inject = ['tools', 'webServer']
+export const inject = ['tools', 'webServer', 'connection']
 
 const GENERATION_PROMPT = `You are a roadmap architect. Generate exactly 4 distinct roadmap options for the following focus.
 
@@ -164,7 +164,18 @@ async function readJsonBody(req, limit) {
   return raw === '' ? undefined : JSON.parse(raw)
 }
 
-function guard(req, res) {
+/**
+ * Route fence: Connection's own Host/Origin + browser-authentication policy —
+ * the same checks the /api channel applies, and the only check that is correct
+ * under BOTH carriers (the desktop page's custom-scheme fetches carry
+ * `sec-fetch-site: cross-site` and no Origin — the old local fence rejected
+ * exactly that legitimate client). The loopback fence survives only as the
+ * fallback when no Connection service is in scope. `guard` is reassigned in
+ * apply().
+ */
+let guard = localGuard
+
+function localGuard(req, res) {
   const remote = req.socket?.remoteAddress ?? ''
   const loopback = remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1'
   const site = req.headers['sec-fetch-site']
@@ -173,7 +184,24 @@ function guard(req, res) {
   return loopback && browser
 }
 
+function makeGuard(ctx) {
+  return (req, res) => {
+    const connection = ctx?.connection
+    if (connection !== undefined && typeof connection.requestRejection === 'function') {
+      const rejection = connection.requestRejection(req)
+      if (rejection !== undefined) {
+        res.writeHead(rejection, { 'content-type': 'text/plain; charset=utf-8' })
+        res.end(rejection === 401 ? 'unauthorized' : 'forbidden')
+        return false
+      }
+      return true
+    }
+    return localGuard(req, res)
+  }
+}
+
 export function apply(ctx) {
+  guard = makeGuard(ctx)
   /** Session-scoped last generation result (for panel re-open). */
   let lastResult = null
   /** Background generation state — survives panel close/reopen. */

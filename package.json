@@ -1,6 +1,6 @@
 {
   "name": "dsh-generative-ideas",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Roadmap ideation for DeepSeek Harness: generate and compare distinct roadmap options via headless agent runs, pick the one that fits, export as goal.md, and dispatch it to an agent in the chosen workspace.",
   "keywords": [
     "deepseek-harness",
