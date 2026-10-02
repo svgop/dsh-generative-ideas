@@ -1,0 +1,6 @@
+{
+	"meta": {
+		"title": "Generative Ideas",
+		"description": "Generate and compare distinct roadmap options via headless agent runs, export the pick as goal.md, and dispatch it to an agent in the chosen workspace."
+	}
+}
