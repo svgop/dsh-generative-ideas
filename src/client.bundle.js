@@ -12,6 +12,8 @@ window.__ModuleLoader__.load({
 			"entry.label": "Ideas",
 			"entry.tooltip": "Generate and compare roadmaps — pick one, export it as goal.md",
 			"panel.title": "Roadmap ideation",
+			"page.title": "Roadmap ideation",
+			"page.intro": "Generate and compare distinct roadmap options via headless agent runs, export the pick as goal.md, and dispatch it to an agent in the chosen workspace.",
 			"step.focus": "Context",
 			"step.generating": "Generating",
 			"step.compare": "Compare",
@@ -51,6 +53,8 @@ window.__ModuleLoader__.load({
 			"entry.label": "构想",
 			"entry.tooltip": "生成并对比路线图——选出最合适的，导出为 goal.md",
 			"panel.title": "路线图构想",
+			"page.title": "路线图构想",
+			"page.intro": "通过无头 agent 运行生成并比较多个不同的路线图方案，将选中的方案导出为 goal.md 并下发给指定工作区的 agent。",
 			"step.focus": "上下文",
 			"step.generating": "生成中",
 			"step.compare": "对比",
@@ -98,8 +102,8 @@ window.__ModuleLoader__.load({
 .rgi-entry[data-active="true"]{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
 .rgi-entryIcon{justify-content:center;align-items:center;width:24px;height:24px;display:inline-flex;flex:none;color:var(--dsw-alias-label-tertiary)}
 .rgi-entryLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rgi-scrim{position:fixed;inset:0;z-index:90;background:color-mix(in srgb, var(--dsw-alias-bg-mask-2, rgba(0,0,0,.45)) 100%, transparent);display:flex;align-items:center;justify-content:center;padding:24px}
-.rgi-card{width:100%;max-width:720px;max-height:min(85vh,680px);border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-specific-tip);border-radius:12px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 24px var(--dsw-alias-bg-mask-2, rgba(0,0,0,.35))}
+.rgi-scrim{position:fixed;inset:0;z-index:90;background:var(--dsw-alias-bg-mask-1);backdrop-filter:var(--dsw-mask-blur);display:flex;align-items:center;justify-content:center;padding:24px}
+.rgi-card{width:100%;max-width:720px;max-height:min(85vh,680px);border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);border-radius:var(--dsw-radius-panel);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--dsw-elevation-prominent)}
 .rgi-card,.rgi-card *{box-sizing:border-box}
 .rgi-head{display:flex;align-items:baseline;gap:8px;padding:14px 16px 10px;border-bottom:1px solid var(--dsw-alias-border-l1)}
 .rgi-title{font-size:14px;font-weight:500;line-height:20px;color:var(--dsw-alias-label-primary);flex:1}
@@ -160,11 +164,21 @@ window.__ModuleLoader__.load({
 .rgi-preBtn{appearance:none;background:0 0;border:none;border-left:1px solid var(--dsw-alias-border-l1);padding:9px 14px;font:inherit;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary);cursor:pointer}
 .rgi-preBtn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
 .rgi-preBtn:disabled{opacity:.45;cursor:default}
-/* Hosted main-panel mode (sidebar.panellist + main slots). */
-.rgi-main{height:100%;overflow:auto;box-sizing:border-box;background:var(--dsw-specific-sidebar-fill);padding:24px;display:flex;justify-content:center;align-items:flex-start}
-.rgi-main .rgi-scrim{position:static;z-index:auto;background:0 0;padding:0;display:flex;flex-direction:column;width:100%;max-width:860px;height:100%}
-.rgi-main .rgi-card{flex:1;min-height:0;max-height:none;box-shadow:none}
-.rgi-main .rgi-close{display:none}`;
+/* Hosted main-panel mode (sidebar.panellist + main slots) — native page template:
+   the main column already paints --dsw-alias-bg-base, so the page surface stays
+   transparent; 960px content column; no dialog chrome around the page. */
+.rgi-main{height:100%;overflow:auto;box-sizing:border-box;padding:0 clamp(24px,4vw,48px) 48px;display:flex;justify-content:center;align-items:flex-start}
+.rgi-main .rgi-scrim{position:static;z-index:auto;background:0 0;padding:0;display:flex;flex-direction:column;width:100%;max-width:960px;height:100%}
+.rgi-main .rgi-card{flex:1;min-height:0;max-height:none;border:none;background:0 0;box-shadow:none;align-self:center;max-width:720px}
+.rgi-main .rgi-close{display:none}
+/* Native pageHead — rendered in hosted mode only (same anatomy as the app's
+   Plugins/Tasks page headers). */
+.rgi-pageHead{box-sizing:border-box;justify-content:space-between;align-items:flex-start;gap:16px;padding-top:28px;display:flex}
+[data-platform=darwin] .rgi-pageHead{padding-top:calc(28px + var(--dsh-frame-top-clearance,0px))}
+.rgi-pageHeadMain{flex:1;min-width:0}
+.rgi-pageTitle{margin:0;font-size:20px;font-weight:500;line-height:28px;color:var(--dsw-alias-label-primary)}
+.rgi-pageIntro{color:var(--dsw-alias-label-secondary);margin:4px 0 0;font-size:13px;line-height:20px}
+.rgi-pageActions{justify-content:flex-end;align-items:center;gap:16px;display:flex}`;
 		const tagId = "dsh-generative-ideas/panel.css";
 		if (typeof document !== "undefined" && document.querySelector(`style[data-plugin-css="${tagId}"]`) === null) {
 			const tag = document.createElement("style");
@@ -192,7 +206,7 @@ window.__ModuleLoader__.load({
 		function MainPanel() {
 			return (0, react_jsx_runtime.jsx)("div", {
 				className: "rgi-main",
-				children: (0, react_jsx_runtime.jsx)(IdeasPanel, { onClose: () => {}, onGeneratingChange: () => {} })
+				children: (0, react_jsx_runtime.jsx)(IdeasPanel, { hosted: true, onClose: () => {}, onGeneratingChange: () => {} })
 			});
 		}
 		//#endregion
@@ -263,7 +277,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 
-		function IdeasPanel({ onClose, onGeneratingChange }) {
+		function IdeasPanel({ onClose, onGeneratingChange, hosted }) {
 			const [step, setStep] = (0, react.useState)("focus");
 			const [state, setState] = (0, react.useState)(null);
 			const [focus, setFocus] = (0, react.useState)("");
@@ -350,11 +364,29 @@ window.__ModuleLoader__.load({
 				className: "rgi-scrim",
 				onClick: (event) => { if (event.target === event.currentTarget) onClose(); },
 				children: [
+					hosted ? (0, react_jsx_runtime.jsxs)("div", {
+						className: "rgi-pageHead",
+						children: [
+							(0, react_jsx_runtime.jsxs)("div", {
+								className: "rgi-pageHeadMain",
+								children: [
+									(0, react_jsx_runtime.jsx)("h1", { className: "rgi-pageTitle", children: t("page.title") }),
+									(0, react_jsx_runtime.jsx)("p", { className: "rgi-pageIntro", children: t("page.intro") })
+								]
+							}),
+							(0, react_jsx_runtime.jsx)("div", {
+								className: "rgi-pageActions",
+								children: [
+									(0, react_jsx_runtime.jsx)("button", { type: "button", className: "rgi-close", "aria-label": t("action.close"), onClick: onClose, children: "\u00d7" })
+								]
+							})
+						]
+					}) : null,
 					(0, react_jsx_runtime.jsxs)("div", {
 						className: "rgi-card",
 						"aria-label": t("panel.title"),
 						children: [
-							(0, react_jsx_runtime.jsxs)("div", {
+							hosted ? null : (0, react_jsx_runtime.jsxs)("div", {
 								className: "rgi-head",
 								children: [
 									(0, react_jsx_runtime.jsx)("span", { className: "rgi-title", children: t("panel.title") }),
