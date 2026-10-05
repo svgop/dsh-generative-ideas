@@ -6,6 +6,7 @@ window.__ModuleLoader__.load({
 		let react = require("react");
 		let react_dom_client = require("react-dom/client");
 		let react_jsx_runtime = require("react/jsx-runtime");
+		let _deepseek_ai_dsh_client_ui_primitives = require("@deepseek-ai/dsh-client-ui-primitives");
 		//#region lib/locale.js
 		const NS = "rich-ideas";
 		const en = {
@@ -18,11 +19,16 @@ window.__ModuleLoader__.load({
 			"step.generating": "Generating",
 			"step.compare": "Compare",
 			"step.chosen": "Chosen",
+			"steps.label": "Progress",
 			"focus.label": "What are we planning?",
 			"focus.placeholder": "e.g. 'Ship v2 of the product with a focus on reliability and developer experience'",
 			"focus.constraints": "Constraints (optional)",
 			"focus.constraintsPlaceholder": "e.g. 'no new infrastructure, 2-week deadline'",
 			"focus.horizon": "Horizon",
+			"horizon.sprint": "Sprint (2 weeks)",
+			"horizon.quarter": "Quarter",
+			"horizon.halfyear": "Half year",
+			"horizon.year": "Year",
 			"focus.workspace": "Target workspace",
 			"focus.workspacePlaceholder": "Select a workspace…",
 			"action.generate": "Generate roadmaps",
@@ -59,11 +65,16 @@ window.__ModuleLoader__.load({
 			"step.generating": "生成中",
 			"step.compare": "对比",
 			"step.chosen": "已选定",
+			"steps.label": "进度",
 			"focus.label": "我们在规划什么？",
 			"focus.placeholder": "例如：'发布产品 v2，重点关注可靠性与开发者体验'",
 			"focus.constraints": "约束（可选）",
 			"focus.constraintsPlaceholder": "例如：'不加新基础设施，两周截止'",
 			"focus.horizon": "时间跨度",
+			"horizon.sprint": "冲刺（2 周）",
+			"horizon.quarter": "季度",
+			"horizon.halfyear": "半年",
+			"horizon.year": "年度",
 			"focus.workspace": "目标工作区",
 			"focus.workspacePlaceholder": "选择工作区…",
 			"action.generate": "生成路线图",
@@ -95,90 +106,52 @@ window.__ModuleLoader__.load({
 		const t = (key) => dict[lang][key] ?? dict.en[key] ?? key;
 		//#endregion
 		//#region lib/styles.js
-		const css = `.rgi-entry{appearance:none;display:flex;align-items:center;gap:8px;width:100%;height:36px;padding:0 10px;font:inherit;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary);background:0 0;border:none;border-radius:8px;cursor:pointer;text-align:left}
-.rgi-entry:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
-.rgi-entry[data-generating="true"] .rgi-entryIcon{color:var(--dsw-alias-state-business-primary);animation:rgi-entry-pulse 1.5s ease-in-out infinite}
-@keyframes rgi-entry-pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.rgi-entry[data-active="true"]{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
-.rgi-entryIcon{justify-content:center;align-items:center;width:24px;height:24px;display:inline-flex;flex:none;color:var(--dsw-alias-label-tertiary)}
-.rgi-entryLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rgi-scrim{position:fixed;inset:0;z-index:90;background:var(--dsw-alias-bg-mask-1);backdrop-filter:var(--dsw-mask-blur);display:flex;align-items:center;justify-content:center;padding:24px}
-.rgi-card{width:100%;max-width:720px;max-height:min(85vh,680px);border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);border-radius:var(--dsw-radius-panel);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--dsw-elevation-prominent)}
-.rgi-card,.rgi-card *{box-sizing:border-box}
-.rgi-head{display:flex;align-items:baseline;gap:8px;padding:14px 16px 10px;border-bottom:1px solid var(--dsw-alias-border-l1)}
-.rgi-title{font-size:14px;font-weight:500;line-height:20px;color:var(--dsw-alias-label-primary);flex:1}
-.rgi-close{flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;font-size:16px}
-.rgi-close:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
-.rgi-stepper{display:flex;border-bottom:1px solid var(--dsw-alias-border-l1)}
-.rgi-step{flex:1;text-align:center;padding:7px 0;font-size:12px;line-height:16px;color:var(--dsw-alias-label-caption);border-bottom:2px solid transparent}
-.rgi-stepOn{color:var(--dsw-alias-state-business-primary);border-bottom-color:var(--dsw-alias-state-business-primary);font-weight:500}
-.rgi-stepDone{color:var(--dsw-alias-state-success-primary)}
-.rgi-body{flex:1;min-height:0;overflow-y:auto;padding:16px;scrollbar-width:none}
-.rgi-body::-webkit-scrollbar{display:none}
-.rgi-field{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
-.rgi-label{color:var(--dsw-alias-label-secondary);font-size:12px;line-height:16px;font-weight:500}
-.rgi-input,.rgi-textarea,.rgi-select{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);border-radius:8px;font:inherit;font-size:13px;line-height:20px;padding:6px 10px;outline:none}
-.rgi-input:focus,.rgi-textarea:focus,.rgi-select:focus{border-color:var(--dsw-alias-state-business-primary)}
-.rgi-textarea{resize:vertical;min-height:56px}
-.rgi-row{display:flex;gap:10px}
-.rgi-row>*{flex:1}
-.rgi-generate{width:100%;padding:10px;background:var(--dsw-alias-state-business-primary);color:#fff;border:none;border-radius:8px;font:inherit;font-size:14px;font-weight:500;cursor:pointer}
-.rgi-generate:hover:not(:disabled){opacity:.9}
-.rgi-deepToggle{display:flex;align-items:center;gap:8px;padding:8px 0 4px;cursor:pointer;user-select:none}
-.rgi-deepCheckbox{width:16px;height:16px;accent-color:var(--dsw-alias-state-business-primary)}
-.rgi-deepLabel{color:var(--dsw-alias-label-secondary);font-size:13px;line-height:18px}
-.rgi-deepHint{color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:14px;margin-left:24px}
-.rgi-generate:disabled{opacity:.5;cursor:default}
-.rgi-genState{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0}
-.rgi-genSpinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--dsw-alias-interactive-bg-hover);border-top-color:var(--dsw-alias-state-business-primary);animation:rgi-spin 1s linear infinite}
-@keyframes rgi-spin{to{transform:rotate(360deg)}}
-.rgi-genText{color:var(--dsw-alias-label-secondary);font-size:14px;line-height:20px}
-.rgi-genSub{color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px}
-.rgi-options{display:flex;flex-direction:column;gap:0}
-.rgi-option{border:1px solid var(--dsw-alias-border-l1);border-radius:0;margin:0;padding:0;cursor:pointer;background:var(--dsw-alias-bg-base)}
-.rgi-option+.rgi-option{border-top:none}
-.rgi-option:first-child{border-radius:8px 8px 0 0}
-.rgi-option:last-child{border-radius:0 0 8px 8px}
-.rgi-option:hover{background:var(--dsw-alias-interactive-bg-hover)}
-.rgi-optionOn{border-color:var(--dsw-alias-state-business-primary);background:color-mix(in srgb, var(--dsw-alias-state-business-primary) 5%, var(--dsw-alias-bg-base))}
-.rgi-optionHead{display:flex;align-items:baseline;gap:8px;padding:12px 14px 6px}
-.rgi-optionName{font-size:15px;font-weight:600;line-height:20px;color:var(--dsw-alias-label-primary);flex:1}
-.rgi-optionEffort{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-interactive-bg-hover);border-radius:999px;padding:1px 8px;flex:none}
-.rgi-optionThesis{padding:0 14px 8px;color:var(--dsw-alias-label-secondary);font-size:13px;line-height:18px}
-.rgi-optionPhases{padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:4px}
-.rgi-phaseChip{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-interactive-bg-hover);border-radius:4px;padding:1px 6px}
-.rgi-optionRisks{padding:0 14px 10px;color:var(--dsw-alias-label-caption);font-size:12px;line-height:16px}
-.rgi-optionFooter{display:flex;justify-content:flex-end;padding:0 14px 10px}
-.rgi-chooseBtn{background:0 0;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;padding:4px 12px;font:inherit;font-size:12px;line-height:16px;color:var(--dsw-alias-label-secondary);cursor:pointer}
-.rgi-chooseBtn:hover{border-color:var(--dsw-alias-state-business-primary);color:var(--dsw-alias-state-business-primary)}
-.rgi-chooseBtnOn{border-color:var(--dsw-alias-state-business-primary);color:var(--dsw-alias-state-business-primary);font-weight:500}
-.rgi-footer{display:flex;align-items:stretch;border-top:1px solid var(--dsw-alias-border-l1)}
-.rgi-status{flex:1;align-self:center;min-width:0;padding:0 12px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rgi-statusErr{color:var(--dsw-alias-state-error-primary)}
-.rgi-statusOk{color:var(--dsw-alias-state-success-primary)}
-.rgi-actionBtn{appearance:none;background:0 0;border:none;border-left:1px solid var(--dsw-alias-border-l1);padding:9px 18px;font:inherit;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary);cursor:pointer}
-.rgi-actionBtn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
-.rgi-actionBtn:disabled{opacity:.45;cursor:default}
-.rgi-actionPrimary{color:var(--dsw-alias-state-business-primary);font-weight:500}
-.rgi-preActions{display:flex;align-items:stretch;flex:none;border-left:1px solid var(--dsw-alias-border-l1)}
-.rgi-preBtn{appearance:none;background:0 0;border:none;border-left:1px solid var(--dsw-alias-border-l1);padding:9px 14px;font:inherit;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary);cursor:pointer}
-.rgi-preBtn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
-.rgi-preBtn:disabled{opacity:.45;cursor:default}
-/* Hosted main-panel mode (sidebar.panellist + main slots) — native page template:
-   the main column already paints --dsw-alias-bg-base, so the page surface stays
-   transparent; 960px content column; no dialog chrome around the page. */
-.rgi-main{height:100%;overflow:auto;box-sizing:border-box;padding:0 clamp(24px,4vw,48px) 48px;display:flex;justify-content:center;align-items:flex-start}
-.rgi-main .rgi-scrim{position:static;z-index:auto;background:0 0;padding:0;display:flex;flex-direction:column;width:100%;max-width:960px;height:100%}
-.rgi-main .rgi-card{flex:1;min-height:0;max-height:none;border:none;background:0 0;box-shadow:none;align-self:center;max-width:720px}
-.rgi-main .rgi-close{display:none}
-/* Native pageHead — rendered in hosted mode only (same anatomy as the app's
-   Plugins/Tasks page headers). */
+		// Wave 2: layout glue only — every control is an app primitive
+		// (SegmentedTabs/Input/Checkbox/Button/Tag/StateDot from
+		// @deepseek-ai/dsh-client-ui-primitives). The only styled elements left
+		// are the rule-4 exceptions: plain <textarea>/<select> on tokens.
+		const css = `.rgi-main{height:100%;overflow:auto;box-sizing:border-box;padding:0 clamp(24px,4vw,48px) 48px;display:flex;justify-content:center;align-items:flex-start}
+.rgi-page{width:100%;max-width:960px;height:100%;display:flex;flex-direction:column}
+.rgi-page,.rgi-page *{box-sizing:border-box}
+.rgi-content{flex:1;min-height:0;width:100%;max-width:720px;align-self:center;display:flex;flex-direction:column}
+.rgi-steps{margin-bottom:16px}
+/* Native pageHead — same anatomy as the app's Plugins/Tasks page headers. */
 .rgi-pageHead{box-sizing:border-box;justify-content:space-between;align-items:flex-start;gap:16px;padding-top:28px;display:flex}
 [data-platform=darwin] .rgi-pageHead{padding-top:calc(28px + var(--dsh-frame-top-clearance,0px))}
 .rgi-pageHeadMain{flex:1;min-width:0}
 .rgi-pageTitle{margin:0;font-size:20px;font-weight:500;line-height:28px;color:var(--dsw-alias-label-primary)}
 .rgi-pageIntro{color:var(--dsw-alias-label-secondary);margin:4px 0 0;font-size:13px;line-height:20px}
-.rgi-pageActions{justify-content:flex-end;align-items:center;gap:16px;display:flex}`;
+.rgi-body{flex:1;min-height:0;overflow-y:auto;padding:16px;scrollbar-width:none}
+.rgi-body::-webkit-scrollbar{display:none}
+.rgi-field{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.rgi-label{color:var(--dsw-alias-label-secondary);font-size:12px;line-height:16px;font-weight:500}
+/* Rule 4: no native primitive for textarea/select — plain elements on tokens. */
+.rgi-textarea,.rgi-select{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);border-radius:var(--dsw-radius-md);font:inherit;font-size:13px;line-height:20px;padding:6px 10px;outline:none}
+.rgi-textarea:focus,.rgi-select:focus{outline:var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary))}
+.rgi-textarea{resize:vertical;min-height:56px}
+.rgi-row{display:flex;gap:10px}
+.rgi-row>*{flex:1}
+.rgi-deepHint{color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:14px;margin:2px 0 0 22px}
+.rgi-generate{width:100%;margin-top:14px}
+.rgi-genState{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0}
+.rgi-genText{color:var(--dsw-alias-label-secondary);font-size:14px;line-height:20px}
+.rgi-genSub{color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px}
+.rgi-options{display:flex;flex-direction:column;gap:8px}
+/* Option cards — native in-page card grammar. */
+.rgi-option{border:1px solid var(--dsw-alias-border-l1);border-radius:var(--dsw-radius-xl);background:transparent;cursor:pointer;margin:0;padding:0;text-align:left}
+.rgi-option:hover{background:var(--dsw-alias-interactive-bg-hover)}
+.rgi-optionOn{border-color:var(--dsw-alias-state-business-primary)}
+.rgi-optionHead{display:flex;align-items:center;gap:8px;padding:12px 14px 6px}
+.rgi-optionName{font-size:14px;font-weight:500;line-height:20px;color:var(--dsw-alias-label-primary);flex:1}
+.rgi-optionThesis{padding:0 14px 8px;color:var(--dsw-alias-label-secondary);font-size:13px;line-height:18px}
+.rgi-optionPhases{padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:4px}
+.rgi-optionRisks{padding:0 14px 10px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px}
+.rgi-optionFooter{display:flex;justify-content:flex-end;padding:0 14px 10px}
+.rgi-newRound{margin-top:12px}
+.rgi-footer{display:flex;align-items:center;gap:8px;border-top:1px solid var(--dsw-alias-border-l1);padding:12px 16px}
+.rgi-status{flex:1;align-self:center;min-width:0;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rgi-statusErr{color:var(--dsw-alias-state-error-primary)}
+.rgi-statusOk{color:var(--dsw-alias-state-success-primary)}`;
 		const tagId = "dsh-generative-ideas/panel.css";
 		if (typeof document !== "undefined" && document.querySelector(`style[data-plugin-css="${tagId}"]`) === null) {
 			const tag = document.createElement("style");
@@ -206,7 +179,7 @@ window.__ModuleLoader__.load({
 		function MainPanel() {
 			return (0, react_jsx_runtime.jsx)("div", {
 				className: "rgi-main",
-				children: (0, react_jsx_runtime.jsx)(IdeasPanel, { hosted: true, onClose: () => {}, onGeneratingChange: () => {} })
+				children: (0, react_jsx_runtime.jsx)(IdeasPanel, { onClose: () => {}, onGeneratingChange: () => {} })
 			});
 		}
 		//#endregion
@@ -231,16 +204,19 @@ window.__ModuleLoader__.load({
 		//#endregion
 		//#region lib/panel.js
 		const STEPS = ["focus", "generating", "compare", "chosen"];
-		function Stepper({ step }) {
-			return (0, react_jsx_runtime.jsx)("div", {
-				className: "rgi-stepper",
-				children: STEPS.map((name, index) => {
-					const active = STEPS.indexOf(step);
-					return (0, react_jsx_runtime.jsx)("span", {
-						className: index === active ? "rgi-step rgi-stepOn" : index < active ? "rgi-step rgi-stepDone" : "rgi-step",
-						children: t(`step.${name}`)
-					}, name)
-				})
+		const HORIZONS = [
+			{ value: "sprint", key: "horizon.sprint" },
+			{ value: "quarter", key: "horizon.quarter" },
+			{ value: "halfyear", key: "horizon.halfyear" },
+			{ value: "year", key: "horizon.year" }
+		];
+		function Stepper({ step, onJump }) {
+			return (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.SegmentedTabs, {
+				className: "rgi-steps",
+				label: t("steps.label"),
+				items: STEPS.map((name) => ({ id: `rgi-tab-${name}`, value: name, label: t(`step.${name}`) })),
+				value: step,
+				onChange: onJump
 			});
 		}
 
@@ -255,29 +231,30 @@ window.__ModuleLoader__.load({
 						className: "rgi-optionHead",
 						children: [
 							(0, react_jsx_runtime.jsx)("span", { className: "rgi-optionName", children: option.name }),
-							(0, react_jsx_runtime.jsx)("span", { className: "rgi-optionEffort", children: `${t("option.effort")}: ${option.effort ?? "M"}` })
+							(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Tag, { tone: "info", children: `${t("option.effort")}: ${option.effort ?? "M"}` })
 						]
 					}),
 					(0, react_jsx_runtime.jsx)("div", { className: "rgi-optionThesis", children: option.thesis }),
 					phases.length > 0 ? (0, react_jsx_runtime.jsx)("div", {
 						className: "rgi-optionPhases",
-						children: phases.map((phase, i) => (0, react_jsx_runtime.jsx)("span", { className: "rgi-phaseChip", children: `${i + 1}. ${phase.name}` }, i))
+						children: phases.map((phase, i) => (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Tag, { tone: "neutral", children: `${i + 1}. ${phase.name}` }, i))
 					}) : null,
 					risks !== "" ? (0, react_jsx_runtime.jsx)("div", { className: "rgi-optionRisks", children: `${t("option.risks")}: ${risks}` }) : null,
 					(0, react_jsx_runtime.jsx)("div", {
 						className: "rgi-optionFooter",
-						children: (0, react_jsx_runtime.jsx)("button", {
-							type: "button",
-							className: chosen ? "rgi-chooseBtn rgi-chooseBtnOn" : "rgi-chooseBtn",
+						children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+							variant: chosen ? "primary" : "ghost",
+							size: "sm",
+							icon: chosen ? (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutlineRegular, { size: 12 }) : null,
 							onClick: (event) => { event.stopPropagation(); onChoose(option); },
-							children: chosen ? `\u2713 ${t("option.chosen")}` : t("option.choose")
+							children: chosen ? t("option.chosen") : t("option.choose")
 						})
 					})
 				]
 			});
 		}
 
-		function IdeasPanel({ onClose, onGeneratingChange, hosted }) {
+		function IdeasPanel({ onClose, onGeneratingChange }) {
 			const [step, setStep] = (0, react.useState)("focus");
 			const [state, setState] = (0, react.useState)(null);
 			const [focus, setFocus] = (0, react.useState)("");
@@ -334,6 +311,22 @@ window.__ModuleLoader__.load({
 				return () => window.clearInterval(timer);
 			}, [step]);
 
+			// Step jumping (SegmentedTabs onChange): the tabs are the wizard's
+			// indicator, and a click may only land where the wizard's state
+			// already holds. "generating" is an async state entered by
+			// startGeneration alone — never by hand. Back to "focus" repeats the
+			// "New round" reset; "compare"/"chosen" are valid once options/a pick
+			// exist. Every other click is a no-op.
+			const jumpTo = (next) => {
+				if (busy || next === step || step === "generating" || next === "generating") return;
+				if (next === "focus") {
+					setStep("focus"); setOptions(null); setChosen(null); setStatus(null);
+					return;
+				}
+				if (next === "compare" && options !== null) { setStep("compare"); return; }
+				if (next === "chosen" && chosen !== null) { setStep("chosen"); return; }
+			};
+
 			const goalContent = () => {
 				if (chosen === null) return "";
 				const phaseText = (chosen.phases ?? []).map((phase, i) => {
@@ -361,39 +354,23 @@ window.__ModuleLoader__.load({
 			};
 
 			return (0, react_jsx_runtime.jsxs)("div", {
-				className: "rgi-scrim",
-				onClick: (event) => { if (event.target === event.currentTarget) onClose(); },
+				className: "rgi-page",
 				children: [
-					hosted ? (0, react_jsx_runtime.jsxs)("div", {
+					(0, react_jsx_runtime.jsx)("div", {
 						className: "rgi-pageHead",
-						children: [
-							(0, react_jsx_runtime.jsxs)("div", {
-								className: "rgi-pageHeadMain",
-								children: [
-									(0, react_jsx_runtime.jsx)("h1", { className: "rgi-pageTitle", children: t("page.title") }),
-									(0, react_jsx_runtime.jsx)("p", { className: "rgi-pageIntro", children: t("page.intro") })
-								]
-							}),
-							(0, react_jsx_runtime.jsx)("div", {
-								className: "rgi-pageActions",
-								children: [
-									(0, react_jsx_runtime.jsx)("button", { type: "button", className: "rgi-close", "aria-label": t("action.close"), onClick: onClose, children: "\u00d7" })
-								]
-							})
-						]
-					}) : null,
+						children: (0, react_jsx_runtime.jsxs)("div", {
+							className: "rgi-pageHeadMain",
+							children: [
+								(0, react_jsx_runtime.jsx)("h1", { className: "rgi-pageTitle", children: t("page.title") }),
+								(0, react_jsx_runtime.jsx)("p", { className: "rgi-pageIntro", children: t("page.intro") })
+							]
+						})
+					}),
 					(0, react_jsx_runtime.jsxs)("div", {
-						className: "rgi-card",
+						className: "rgi-content",
 						"aria-label": t("panel.title"),
 						children: [
-							hosted ? null : (0, react_jsx_runtime.jsxs)("div", {
-								className: "rgi-head",
-								children: [
-									(0, react_jsx_runtime.jsx)("span", { className: "rgi-title", children: t("panel.title") }),
-									(0, react_jsx_runtime.jsx)("button", { type: "button", className: "rgi-close", "aria-label": t("action.close"), onClick: onClose, children: "\u00d7" })
-								]
-							}),
-							(0, react_jsx_runtime.jsx)(Stepper, { step }),
+							(0, react_jsx_runtime.jsx)(Stepper, { step, onJump: jumpTo }),
 							(0, react_jsx_runtime.jsx)("div", {
 								className: "rgi-body",
 								children: step === "focus" ? (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, {
@@ -432,16 +409,11 @@ window.__ModuleLoader__.load({
 													className: "rgi-field",
 													children: [
 														(0, react_jsx_runtime.jsx)("label", { className: "rgi-label", children: t("focus.horizon") }),
-														(0, react_jsx_runtime.jsxs)("select", {
+														(0, react_jsx_runtime.jsx)("select", {
 															className: "rgi-select",
 															value: horizon,
 															onChange: (event) => setHorizon(event.target.value),
-															children: [
-																(0, react_jsx_runtime.jsx)("option", { value: "sprint", children: "Sprint (2 weeks)" }),
-																(0, react_jsx_runtime.jsx)("option", { value: "quarter", children: "Quarter" }),
-																(0, react_jsx_runtime.jsx)("option", { value: "halfyear", children: "Half year" }),
-																(0, react_jsx_runtime.jsx)("option", { value: "year", children: "Year" })
-															]
+															children: HORIZONS.map((h) => (0, react_jsx_runtime.jsx)("option", { value: h.value, children: t(h.key) }, h.value))
 														})
 													]
 												})
@@ -451,30 +423,21 @@ window.__ModuleLoader__.load({
 											className: "rgi-field",
 											children: [
 												(0, react_jsx_runtime.jsx)("label", { className: "rgi-label", children: t("focus.constraints") }),
-												(0, react_jsx_runtime.jsx)("input", {
-													type: "text",
-													className: "rgi-input",
+												(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Input, {
 													placeholder: t("focus.constraintsPlaceholder"),
 													value: constraints,
 													onChange: (event) => setConstraints(event.target.value)
 												})
 											]
 										}),
-										(0, react_jsx_runtime.jsxs)("label", {
-											className: "rgi-deepToggle",
-											children: [
-												(0, react_jsx_runtime.jsx)("input", {
-													type: "checkbox",
-													className: "rgi-deepCheckbox",
-													checked: deepResearch,
-													onChange: (event) => setDeepResearch(event.target.checked)
-												}),
-												(0, react_jsx_runtime.jsx)("span", { className: "rgi-deepLabel", children: t("action.deepResearch") })
-											]
+										(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Checkbox, {
+											checked: deepResearch,
+											onChange: (checked) => setDeepResearch(checked),
+											label: t("action.deepResearch")
 										}),
 										(0, react_jsx_runtime.jsx)("div", { className: "rgi-deepHint", children: t("action.deepResearchHint") }),
-										(0, react_jsx_runtime.jsx)("button", {
-											type: "button",
+										(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+											variant: "primary",
 											className: "rgi-generate",
 											disabled: focus.trim() === "" || workspace === "",
 											onClick: startGeneration,
@@ -484,7 +447,7 @@ window.__ModuleLoader__.load({
 								}) : step === "generating" ? (0, react_jsx_runtime.jsxs)("div", {
 									className: "rgi-genState",
 									children: [
-										(0, react_jsx_runtime.jsx)("div", { className: "rgi-genSpinner" }),
+										(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.StateDot, { state: "ongoing", size: 28 }),
 										(0, react_jsx_runtime.jsx)("span", { className: "rgi-genText", children: t("action.generating") }),
 										(0, react_jsx_runtime.jsx)("span", { className: "rgi-genSub", children: focus })
 									]
@@ -498,10 +461,9 @@ window.__ModuleLoader__.load({
 												onChoose: (pick) => { setChosen(pick); setStatus(null); }
 											}, `${option.name}-${index}`))
 										}),
-										step === "chosen" ? (0, react_jsx_runtime.jsx)("button", {
-											type: "button",
-											className: "rgi-chooseBtn",
-											style: { marginTop: 12 },
+										step === "chosen" ? (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+											variant: "ghost",
+											className: "rgi-newRound",
 											onClick: () => { setStep("focus"); setOptions(null); setChosen(null); setStatus(null); },
 											children: t("action.newRound")
 										}) : null
@@ -512,46 +474,40 @@ window.__ModuleLoader__.load({
 								className: "rgi-footer",
 								children: [
 									(0, react_jsx_runtime.jsx)("span", { className: status?.kind === "error" ? "rgi-status rgi-statusErr" : status?.kind === "ok" ? "rgi-status rgi-statusOk" : "rgi-status", role: status?.kind === "error" ? "alert" : "status", children: status?.text ?? "" }),
-								step === "compare" ? (0, react_jsx_runtime.jsxs)("div", {
-									className: "rgi-preActions",
-									children: [
-										(0, react_jsx_runtime.jsx)("button", {
-											type: "button",
-											className: "rgi-preBtn",
-											title: t("action.reroll.hint"),
-											disabled: busy,
-											onClick: () => { setChosen(null); startGeneration(); },
-											children: t("action.reroll")
-										}),
-										(0, react_jsx_runtime.jsx)("button", {
-											type: "button",
-											className: "rgi-preBtn",
-											title: t("action.push.hint"),
-											disabled: busy,
-											onClick: () => { setChosen(null); setDeepResearch(true); startGeneration(); },
-											children: t("action.push")
-										}),
-										(0, react_jsx_runtime.jsx)("button", {
-											type: "button",
-											className: "rgi-preBtn",
-											title: t("action.discuss.hint"),
-											onClick: onClose,
-											children: t("action.discuss")
-										})
-									]
-								}) : null,
+									step === "compare" ? (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, {
+										children: [
+											(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+												variant: "ghost",
+												title: t("action.reroll.hint"),
+												disabled: busy,
+												onClick: () => { setChosen(null); startGeneration(); },
+												children: t("action.reroll")
+											}),
+											(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+												variant: "ghost",
+												title: t("action.push.hint"),
+												disabled: busy,
+												onClick: () => { setChosen(null); setDeepResearch(true); startGeneration(); },
+												children: t("action.push")
+											}),
+											(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+												variant: "ghost",
+												title: t("action.discuss.hint"),
+												onClick: onClose,
+												children: t("action.discuss")
+											})
+										]
+									}) : null,
 									chosen !== null && step !== "chosen" ? (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, {
 										children: [
-											(0, react_jsx_runtime.jsx)("button", {
-												type: "button",
-												className: "rgi-actionBtn",
+											(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+												variant: "ghost",
 												disabled: busy,
 												onClick: copyToClipboard,
 												children: t("action.export")
 											}),
-											(0, react_jsx_runtime.jsx)("button", {
-												type: "button",
-												className: "rgi-actionBtn rgi-actionPrimary",
+											(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+												variant: "primary",
 												disabled: busy,
 												onClick: downloadGoal,
 												children: t("action.download")
