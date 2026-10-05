@@ -126,10 +126,13 @@ window.__ModuleLoader__.load({
 .rgi-body{display:flex;flex-direction:column}
 .rgi-field{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
 .rgi-label{color:var(--dsw-alias-label-secondary);font-size:12px;line-height:16px;font-weight:500}
-/* Rule 4: no native primitive for textarea/select — plain elements on tokens. */
-.rgi-textarea,.rgi-select{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);border-radius:var(--dsw-radius-md);font:inherit;font-size:13px;line-height:20px;padding:6px 10px;outline:none}
-.rgi-textarea:focus,.rgi-select:focus{outline:var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary))}
+/* Rule 4: no native primitive for textarea — plain element on tokens. */
+.rgi-textarea{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);border-radius:var(--dsw-radius-md);font:inherit;font-size:13px;line-height:20px;padding:6px 10px;outline:none}
+.rgi-textarea:focus{outline:var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary))}
 .rgi-textarea{resize:vertical;min-height:56px}
+/* Native Menu picker trigger (the dropdown itself is the app's Menu). */
+.rgi-picker{min-width:220px;justify-content:space-between}
+.rgi-pickerLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rgi-row{display:flex;gap:10px}
 .rgi-row>*{flex:1}
 .rgi-deepHint{color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:14px;margin:2px 0 0 22px}
@@ -181,6 +184,33 @@ window.__ModuleLoader__.load({
 			return (0, react_jsx_runtime.jsx)("div", {
 				className: "rgi-main",
 				children: (0, react_jsx_runtime.jsx)(IdeasPanel, { onClose: () => {}, onGeneratingChange: () => {} })
+			});
+		}
+		/** Native dropdown picker: a Button trigger opening the app's Menu
+		 * (MenuSurface + MenuItemButton rows, check-marked selection, keyboard
+		 * walk) — the app's own value-picker grammar, replacing <select>. */
+		function MenuPicker({ value, options, placeholder, onChange, ariaLabel }) {
+			const [open, setOpen] = (0, react.useState)(false);
+			const current = options.find((option) => option.value === value);
+			return (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Menu, {
+				open,
+				onClose: () => setOpen(false),
+				onSelect: (id) => { onChange(id); setOpen(false); },
+				selectedId: value,
+				align: "start",
+				side: "bottom",
+				items: options.map((option) => ({ id: option.value, label: option.label })),
+				anchor: (0, react_jsx_runtime.jsxs)(_deepseek_ai_dsh_client_ui_primitives.Button, {
+					className: "rgi-picker",
+					"aria-haspopup": "menu",
+					"aria-expanded": open,
+					"aria-label": ariaLabel,
+					onClick: () => setOpen(open === false),
+					children: [
+						(0, react_jsx_runtime.jsx)("span", { className: "rgi-pickerLabel", children: current === undefined ? placeholder : current.label }),
+						(0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconChevronDownOutlineRegular, { size: 14 })
+					]
+				})
 			});
 		}
 		//#endregion
@@ -395,14 +425,12 @@ window.__ModuleLoader__.load({
 													className: "rgi-field",
 													children: [
 														(0, react_jsx_runtime.jsx)("label", { className: "rgi-label", children: t("focus.workspace") }),
-														(0, react_jsx_runtime.jsxs)("select", {
-															className: "rgi-select",
+														(0, react_jsx_runtime.jsx)(MenuPicker, {
 															value: workspace,
-															onChange: (event) => setWorkspace(event.target.value),
-															children: [
-																(0, react_jsx_runtime.jsx)("option", { value: "", disabled: true, children: t("focus.workspacePlaceholder") }),
-																...(state?.workspaces ?? []).map((slug) => (0, react_jsx_runtime.jsx)("option", { value: slug, children: slug }, slug))
-															]
+															placeholder: t("focus.workspacePlaceholder"),
+															ariaLabel: t("focus.workspace"),
+															onChange: (value) => setWorkspace(value),
+															options: (state?.workspaces ?? []).map((slug) => ({ value: slug, label: slug }))
 														})
 													]
 												}),
@@ -410,11 +438,11 @@ window.__ModuleLoader__.load({
 													className: "rgi-field",
 													children: [
 														(0, react_jsx_runtime.jsx)("label", { className: "rgi-label", children: t("focus.horizon") }),
-														(0, react_jsx_runtime.jsx)("select", {
-															className: "rgi-select",
+														(0, react_jsx_runtime.jsx)(MenuPicker, {
 															value: horizon,
-															onChange: (event) => setHorizon(event.target.value),
-															children: HORIZONS.map((h) => (0, react_jsx_runtime.jsx)("option", { value: h.value, children: t(h.key) }, h.value))
+															ariaLabel: t("focus.horizon"),
+															onChange: (value) => setHorizon(value),
+															options: HORIZONS.map((h) => ({ value: h.value, label: t(h.key) }))
 														})
 													]
 												})
