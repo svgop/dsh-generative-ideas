@@ -111,18 +111,19 @@ window.__ModuleLoader__.load({
 		// @deepseek-ai/dsh-client-ui-primitives). The only styled elements left
 		// are the rule-4 exceptions: plain <textarea>/<select> on tokens.
 		const css = `.rgi-main{height:100%;overflow:auto;box-sizing:border-box;padding:0 clamp(24px,4vw,48px) 48px;display:flex;justify-content:center;align-items:flex-start}
-.rgi-page{width:100%;max-width:960px;height:100%;display:flex;flex-direction:column}
+.rgi-page{width:100%;max-width:960px;display:flex;flex-direction:column;gap:32px}
 .rgi-page,.rgi-page *{box-sizing:border-box}
-.rgi-content{flex:1;min-height:0;width:100%;max-width:720px;align-self:center;display:flex;flex-direction:column}
-.rgi-steps{margin-bottom:16px}
+/* One column, one left edge: header, stepper, body, and footer all align to
+   the same 960px column (native page grammar); the page scrolls, not a body. */
+.rgi-content{width:100%;display:flex;flex-direction:column}
+.rgi-steps{margin-bottom:20px;max-width:560px}
 /* Native pageHead — same anatomy as the app's Plugins/Tasks page headers. */
 .rgi-pageHead{box-sizing:border-box;justify-content:space-between;align-items:flex-start;gap:16px;padding-top:28px;display:flex}
 [data-platform=darwin] .rgi-pageHead{padding-top:calc(28px + var(--dsh-frame-top-clearance,0px))}
 .rgi-pageHeadMain{flex:1;min-width:0}
 .rgi-pageTitle{margin:0;font-size:20px;font-weight:500;line-height:28px;color:var(--dsw-alias-label-primary)}
 .rgi-pageIntro{color:var(--dsw-alias-label-secondary);margin:4px 0 0;font-size:13px;line-height:20px}
-.rgi-body{flex:1;min-height:0;overflow-y:auto;padding:16px;scrollbar-width:none}
-.rgi-body::-webkit-scrollbar{display:none}
+.rgi-body{display:flex;flex-direction:column}
 .rgi-field{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
 .rgi-label{color:var(--dsw-alias-label-secondary);font-size:12px;line-height:16px;font-weight:500}
 /* Rule 4: no native primitive for textarea/select — plain elements on tokens. */
@@ -132,7 +133,7 @@ window.__ModuleLoader__.load({
 .rgi-row{display:flex;gap:10px}
 .rgi-row>*{flex:1}
 .rgi-deepHint{color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:14px;margin:2px 0 0 22px}
-.rgi-generate{width:100%;margin-top:14px}
+.rgi-generate{align-self:flex-start;min-width:220px;margin-top:14px}
 .rgi-genState{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0}
 .rgi-genText{color:var(--dsw-alias-label-secondary);font-size:14px;line-height:20px}
 .rgi-genSub{color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px}
@@ -148,7 +149,7 @@ window.__ModuleLoader__.load({
 .rgi-optionRisks{padding:0 14px 10px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px}
 .rgi-optionFooter{display:flex;justify-content:flex-end;padding:0 14px 10px}
 .rgi-newRound{margin-top:12px}
-.rgi-footer{display:flex;align-items:center;gap:8px;border-top:1px solid var(--dsw-alias-border-l1);padding:12px 16px}
+.rgi-footer{display:flex;align-items:center;gap:8px;border-top:1px solid var(--dsw-alias-border-l1);padding:12px 0 0;margin-top:16px}
 .rgi-status{flex:1;align-self:center;min-width:0;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rgi-statusErr{color:var(--dsw-alias-state-error-primary)}
 .rgi-statusOk{color:var(--dsw-alias-state-success-primary)}`;
